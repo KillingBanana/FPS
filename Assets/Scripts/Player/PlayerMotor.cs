@@ -10,9 +10,10 @@ public class PlayerMotor : MonoBehaviour {
 
 	private void Awake() {
 		rigidbody = GetComponent<Rigidbody>();
+		GetComponent<Player>().onDeath += Reset;
 	}
 
-	private void OnEnable() {
+	private void Reset() {
 		velocity = Vector3.zero;
 		jumpForce = Vector3.zero;
 		verticalForce = Vector3.zero;

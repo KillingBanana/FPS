@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 
 public class WeaponModel : MonoBehaviour {
-	public ParticleSystem muzzleFlash;
+	[SerializeField] private ParticleSystem muzzleFlash;
 	public GameObject impactPrefab;
+
+	public void OnShoot() {
+		muzzleFlash?.Play();
+	}
 }

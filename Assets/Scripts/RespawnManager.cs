@@ -21,7 +21,7 @@ public class RespawnManager : NetworkBehaviour {
 		Dictionary<NetworkInstanceId, float> nextValues = new Dictionary<NetworkInstanceId, float>();
 		foreach (NetworkInstanceId id in respawnTimer.Keys) {
 			if (respawnTimer[id] <= 0) {
-				RpcRespawnPlayer(id);
+				RespawnPlayer(id);
 			} else {
 				nextValues.Add(id, respawnTimer[id] - Time.deltaTime);
 			}
@@ -33,14 +33,17 @@ public class RespawnManager : NetworkBehaviour {
 	[Server]
 	public static void QueueRespawn(NetworkInstanceId id) {
 		if (respawnTimer.ContainsKey(id)) {
-			Debug.Log($"{GameManager.GetPlayer(id).username} already queued for respawn");
+			Debug.Log($"{GameManager.GetPlayer(id)} already queued for respawn");
 		} else {
 			respawnTimer.Add(id, GameManager.Settings.respawnTime);
 		}
 	}
 
-	[ClientRpc]
-	private void RpcRespawnPlayer(NetworkInstanceId id) {
-		GameManager.SpawnPlayer(id);
+	[Server]
+	private void RespawnPlayer(NetworkInstanceId id) {
+		Player player = GameManager.GetPlayer(id);
+		Transform spawn = NetworkManager.singleton.GetStartPosition();
+
+		player.CmdSpawn(spawn.position, spawn.rotation);
 	}
 }

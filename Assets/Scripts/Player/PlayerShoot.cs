@@ -21,7 +21,7 @@ public class PlayerShoot : NetworkBehaviour {
 	private void Update() {
 		weapon = weaponManager.GetCurrentWeapon();
 
-		if (isLocalPlayer && !PauseMenu.Paused) ProcessInput();
+		if (isLocalPlayer && !player.Dead && !PauseMenu.Paused) ProcessInput();
 	}
 
 	private void ProcessInput() {
@@ -44,7 +44,7 @@ public class PlayerShoot : NetworkBehaviour {
 	}
 
 	private void MuzzleFlash() {
-		weaponManager.GetCurrentModel().muzzleFlash.Play();
+		weaponManager.GetCurrentModel().OnShoot();
 	}
 
 	[Client]

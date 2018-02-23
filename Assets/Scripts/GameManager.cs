@@ -31,13 +31,4 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public static Player GetPlayer(NetworkInstanceId id) => Players[id];
-
-	public static void SpawnPlayer(NetworkInstanceId id) {
-		Player player = GetPlayer(id);
-		Transform spawn = NetworkManager.singleton.GetStartPosition();
-		player.transform.position = spawn.position;
-		player.transform.rotation = spawn.rotation;
-		player.gameObject.SetActive(true);
-		player.OnSpawn();
-	}
 }

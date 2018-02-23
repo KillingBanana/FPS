@@ -8,8 +8,7 @@ public class PlayerController : MonoBehaviour {
 	[SerializeField, Header("Jetpack")] private bool useJetpack;
 	public bool UseJetpack => useJetpack;
 	[SerializeField] private float jetpackForce = 1000, jetpackDrag = 2, fuelUseSpeed = 1f, fuelRegenSpeed = 1 / 3f;
-	private float fuelAmount = 1;
-	public float FuelAmount => fuelAmount;
+	public float FuelAmount { get; private set; } = 1;
 
 	private bool grounded;
 	private bool jetpackActive;
@@ -78,19 +77,19 @@ public class PlayerController : MonoBehaviour {
 	}
 
 	private void UpdateJetpack() {
-		jetpackActive = !PauseMenu.Paused && Input.GetButton("Jump") && fuelAmount > 0f;
+		jetpackActive = !PauseMenu.Paused && Input.GetButton("Jump") && FuelAmount > 0f;
 		if (jetpackActive) {
-			fuelAmount -= fuelUseSpeed * Time.deltaTime;
-			if (fuelAmount > 0.01f) {
+			FuelAmount -= fuelUseSpeed * Time.deltaTime;
+			if (FuelAmount > 0.01f) {
 				Vector3 jetpackVector = jetpackForce * Vector3.up;
 
 				motor.ApplyVerticalForce(jetpackVector);
 			}
 		} else if (grounded) {
-			fuelAmount += fuelRegenSpeed * Time.deltaTime;
+			FuelAmount += fuelRegenSpeed * Time.deltaTime;
 		}
 
-		fuelAmount = Mathf.Clamp01(fuelAmount);
+		FuelAmount = Mathf.Clamp01(FuelAmount);
 	}
 
 	private void UpdateGravity() {

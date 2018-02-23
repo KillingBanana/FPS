@@ -4,27 +4,43 @@ using UnityEngine.Networking;
 public class Player : NetworkBehaviour {
 	private const ushort MaxHealth = 100;
 
-	[SyncVar] public string username = "< Username >";
+	[HideInInspector, SyncVar] public string username = "< Username >";
 
 	[SyncVar] private bool dead;
+	public bool Dead => dead;
 	[SyncVar] private short health;
 
-	[SyncVar] public int kills, deaths, assists, ping;
+	[HideInInspector, SyncVar] public int kills, deaths, assists, ping;
 
-	private void Update() {
-		if (isServer && transform.position.y < -100f && !dead) {
-			CmdDie(new HitInfo(netId, netId, MaxHealth, "Fall"));
-		}
+	public delegate void OnSpawn();
+
+	public delegate void OnDeath();
+
+	public OnSpawn onSpawn;
+	public OnDeath onDeath;
+
+	[Command]
+	public void CmdInitPlayer(string username) {
+		this.username = username;
 	}
 
-	public void OnSpawn() {
+	[Command]
+	public void CmdSpawn(Vector3 position, Quaternion rotation) {
 		health = (short) MaxHealth;
 		dead = false;
+		RpcSpawn(position, rotation);
+	}
+
+	[ClientRpc]
+	private void RpcSpawn(Vector3 position, Quaternion rotation) {
+		transform.position = position;
+		transform.rotation = rotation;
+		gameObject.SetActive(true);
+		onSpawn.Invoke();
 	}
 
 	[Command]
 	public void CmdHit(HitInfo hitInfo) {
-		if (hitInfo.shooterId != netId) Debug.LogWarning("Player NetID and shooter NetID do not match");
 		GameManager.GetPlayer(hitInfo.hitId).CmdTakeDamage(hitInfo);
 	}
 
@@ -39,7 +55,7 @@ public class Player : NetworkBehaviour {
 	[Command]
 	private void CmdDie(HitInfo hitInfo) {
 		if (dead) {
-			Debug.LogWarning($"Trying to kill player that is already dead ({GameManager.GetPlayer(hitInfo.hitId).username})");
+			Debug.LogWarning($"Trying to kill player that is already dead ({GameManager.GetPlayer(hitInfo.hitId)})");
 			return;
 		}
 
@@ -52,9 +68,17 @@ public class Player : NetworkBehaviour {
 
 	[ClientRpc]
 	private void RpcDie(HitInfo hitInfo) {
-		Debug.Log($"{GameManager.GetPlayer(hitInfo.shooterId).username} killed {username} ({(hitInfo.Suicide ? "Suicide by " + hitInfo.weapon : hitInfo.weapon)})");
+		Killfeed.AddKill(hitInfo);
+		onDeath.Invoke();
+
+		transform.position = Vector3.zero;
+		GetComponent<Rigidbody>().position = Vector3.zero;
+		GetComponent<Rigidbody>().velocity = Vector3.zero;
+
 		gameObject.SetActive(false);
 	}
+
+	public override string ToString() => username;
 }
 
 public struct HitInfo {
@@ -63,6 +87,13 @@ public struct HitInfo {
 	public readonly string weapon;
 
 	public bool Suicide => shooterId == hitId;
+
+	public string KillText {
+		get {
+			if (Suicide) return $"<b>{GameManager.GetPlayer(hitId)}</b> died (Suicide by {weapon})";
+			else return $"<b>{GameManager.GetPlayer(shooterId)}</b> killed <b>{GameManager.GetPlayer(hitId)}</b> ({weapon})";
+		}
+	}
 
 	public HitInfo(NetworkInstanceId shooterId, NetworkInstanceId hitId, ushort damage, string weapon) {
 		this.shooterId = shooterId;
