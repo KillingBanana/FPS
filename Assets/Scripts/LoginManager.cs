@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
-using DatabaseControl;
 using JetBrains.Annotations;
 
 // << Remember to add this reference to your scripts which use DatabaseControl
@@ -10,6 +9,7 @@ public class LoginManager : MonoBehaviour {
 	//All public variables bellow are assigned in the Inspector
 
 	[SerializeField] private int minUsernameLength = 5, minPasswordLength = 8;
+	[SerializeField] private string loginPhp, registerPhp;
 
 	//These are the GameObjects which are parents of groups of UI elements. The objects are enabled and disabled to show and hide the UI elements.
 	[SerializeField] private GameObject loginParent, registerParent, loggedInParent, loadingParent;
@@ -37,23 +37,40 @@ public class LoginManager : MonoBehaviour {
 		registerErrorText.text = "";
 	}
 
+	private IEnumerator RegisterUser(string username, string password) {
+		WWWForm form = new WWWForm();
+		form.AddField("username", username);
+		form.AddField("password", password);
+
+		WWW www = new WWW(registerPhp, form);
+
+		yield return www;
+
+		StartCoroutine(LoginUser(username, password));
+	}
+
 	//Called by Button Pressed Methods. These use DatabaseControl namespace to communicate with server.
 	private IEnumerator LoginUser(string username, string password) {
-		IEnumerator e = DCF.Login(username, password); // << Send request to login, providing username and password
-		while (e.MoveNext()) {
-			yield return e.Current;
-		}
+		WWWForm form = new WWWForm();
+		form.AddField("username", username);
+		form.AddField("password", password);
 
-		string response = e.Current as string; // << The returned string from the request
+		WWW www = new WWW(loginPhp, form);
 
-		if (response == "Success") {
+		yield return www;
+
+		string result = www.text;
+
+		Debug.Log(result);
+
+		if (result == "Success") {
 			//Username and Password were correct. Stop showing 'Loading...' and transition to new scenew
 			AccountManager.LogIn(username, password);
 		} else {
 			//Something went wrong logging in. Stop showing 'Loading...' and go back to LoginUI
 			loadingParent.gameObject.SetActive(false);
 			loginParent.gameObject.SetActive(true);
-			switch (response) {
+			switch (result) {
 				case "UserError":
 					//The Username was wrong so display relevent error message
 					loginErrorText.text = "Error: Username not found";
@@ -69,32 +86,6 @@ public class LoginManager : MonoBehaviour {
 		}
 	}
 
-	private IEnumerator RegisterUser(string username, string password) {
-		Account account = new Account(username);
-		IEnumerator e = DCF.RegisterUser(account.LoginUsername, password, account.ToJson()); // << Send request to register a new user, providing submitted username and password. It also provides an initial value for the data string on the account, which is "Hello World".
-		while (e.MoveNext()) {
-			yield return e.Current;
-		}
-
-		string response = e.Current as string; // << The returned string from the request
-
-		if (response == "Success") {
-			//Username and Password were valid. Account has been created. Stop showing 'Loading...' and show the loggedIn UI and set text to display the username.
-			AccountManager.LogIn(account.LoginUsername, password);
-		} else {
-			//Something went wrong logging in. Stop showing 'Loading...' and go back to RegisterUI
-			loadingParent.gameObject.SetActive(false);
-			registerParent.gameObject.SetActive(true);
-			if (response == "UserError") {
-				//The username has already been taken. Player needs to choose another. Shows error message.
-				registerErrorText.text = "Error: Username Already Taken";
-			} else {
-				//There was another error. This error message should never appear, but is here just in case.
-				loginErrorText.text = "Error: Unknown Error. Please try again later.";
-			}
-		}
-	}
-
 	//UI Button Pressed Methods
 	[UsedImplicitly]
 	public void Login_LoginButtonPressed() {
@@ -106,7 +97,7 @@ public class LoginManager : MonoBehaviour {
 				//Username and password seem reasonable. Change UI to 'Loading...'. Start the Coroutine which tries to log the player in.
 				loginParent.gameObject.SetActive(false);
 				loadingParent.gameObject.SetActive(true);
-				StartCoroutine(LoginUser(loginUsernameField.text.ToLower(), loginPasswordField.text));
+				StartCoroutine(LoginUser(loginUsernameField.text, loginPasswordField.text));
 			} else {
 				//Password too short so it must be wrong
 				loginErrorText.text = $"Error: Password too short (must be at least {minPasswordLength} characters)";

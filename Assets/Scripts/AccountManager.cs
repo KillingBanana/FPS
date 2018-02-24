@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using DatabaseControl;
 
 public class AccountManager : MonoBehaviour {
 	private static AccountManager instance;
@@ -57,7 +56,8 @@ public class AccountManager : MonoBehaviour {
 	private void SetDataRequest(Action<Account> callback = null) => StartCoroutine(SetDataCoroutine(callback));
 
 	private static IEnumerator SetDataCoroutine(Action<Account> callback = null) {
-		IEnumerator e = DCF.SetUserData(CurrentAccount.LoginUsername, accountPassword, CurrentAccount.ToJson()); // << Send request to set the player's data string. Provides the username, password and new data string
+		yield return null;
+		/*IEnumerator e = DCF.SetUserData(CurrentAccount.LoginUsername, accountPassword, CurrentAccount.ToJson()); // << Send request to set the player's data string. Provides the username, password and new data string
 
 		while (e.MoveNext()) {
 			yield return e.Current;
@@ -72,7 +72,7 @@ public class AccountManager : MonoBehaviour {
 		} else {
 			//There was another error. Automatically logs player out. This error message should never appear, but is here just in case.
 			Debug.LogWarning($"Error setting data for account {CurrentAccount.Username}.");
-		}
+		}*/
 	}
 
 	public static void GetData(Action<Account> callback) {
@@ -86,7 +86,8 @@ public class AccountManager : MonoBehaviour {
 	private void GetDataRequest(string username, string password, Action<Account> callback) => StartCoroutine(GetDataCoroutine(username, password, callback));
 
 	private static IEnumerator GetDataCoroutine(string username, string password, Action<Account> callback) {
-		IEnumerator e = DCF.GetUserData(username, password); // << Send request to get the player's data string. Provides the username and password
+		yield return null;
+		/*IEnumerator e = DCF.GetUserData(username, password); // << Send request to get the player's data string. Provides the username and password
 
 		while (e.MoveNext()) {
 			yield return e.Current;
@@ -101,6 +102,6 @@ public class AccountManager : MonoBehaviour {
 			//The player's data was retrieved. Goes back to loggedIn UI and displays the retrieved data in the InputField
 
 			callback.Invoke(Account.FromJson(response));
-		}
+		}*/
 	}
 }

@@ -7,21 +7,6 @@
       <e p="Assembly-CSharp-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
-        <e p="Database Control Free" t="Include">
-          <e p="Demos" t="Include">
-            <e p="UnityScript" t="Include">
-              <e p="Readme.txt" t="Include" />
-            </e>
-          </e>
-          <e p="Resources" t="Include">
-            <e p="DCF_RuntimeData.txt" t="Include" />
-          </e>
-        </e>
-        <e p="Editor Default Resources" t="Include">
-          <e p="Database Control Free" t="Include">
-            <e p="DCF_EditorData.txt" t="Include" />
-          </e>
-        </e>
         <e p="Plugins" t="Include">
           <e p="Editor" t="Include">
             <e p="JetBrains" t="Include">

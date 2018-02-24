@@ -387,6 +387,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minUsernameLength: 5
   minPasswordLength: 8
+  loginPhp: http://ec2-35-180-10-87.eu-west-3.compute.amazonaws.com/login.php
+  registerPhp: http://ec2-35-180-10-87.eu-west-3.compute.amazonaws.com/register.php
   loginParent: {fileID: 260073404}
   registerParent: {fileID: 192181820}
   loggedInParent: {fileID: 19726557}
@@ -2398,7 +2400,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 0
-  m_CharacterLimit: 0
+  m_CharacterLimit: 20
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls: []
@@ -3058,7 +3060,7 @@ MonoBehaviour:
   m_LineType: 0
   m_HideMobileInput: 0
   m_CharacterValidation: 0
-  m_CharacterLimit: 0
+  m_CharacterLimit: 20
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls: []
