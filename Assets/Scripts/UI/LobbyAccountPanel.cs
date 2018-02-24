@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class LobbyAccountPanel : MonoBehaviour {
-	[SerializeField] private Text usernameText;
+	[SerializeField] private Text usernameText, statsText;
 
 	private void Start() {
 		if (!AccountManager.LoggedIn) {
@@ -13,11 +13,7 @@ public class LobbyAccountPanel : MonoBehaviour {
 		}
 
 		usernameText.text = AccountManager.CurrentAccount.Username;
-	}
-
-	public void ChangeUsername(InputField newUsername) {
-		AccountManager.CurrentAccount.SetUsername(newUsername.text);
-		AccountManager.SetData();
+		statsText.text = $"Kills: {AccountManager.CurrentAccount.Kills}\nDeaths: {AccountManager.CurrentAccount.Deaths}";
 	}
 
 	[UsedImplicitly]

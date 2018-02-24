@@ -12,7 +12,7 @@ public class LoginManager : MonoBehaviour {
 	[SerializeField] private string loginPhp, registerPhp;
 
 	//These are the GameObjects which are parents of groups of UI elements. The objects are enabled and disabled to show and hide the UI elements.
-	[SerializeField] private GameObject loginParent, registerParent, loggedInParent, loadingParent;
+	[SerializeField] private GameObject loginParent, registerParent, loadingParent;
 
 	//These are all the InputFields which we need in order to get the entered usernames, passwords, etc
 	[SerializeField] private InputField loginUsernameField, loginPasswordField, registerUsernameField, registerPasswordField, registerConfirmPasswordField;
@@ -46,13 +46,28 @@ public class LoginManager : MonoBehaviour {
 
 		yield return www;
 
-		StartCoroutine(LoginUser(username, password));
+		string result = www.text;
+
+		if (result == "Success") {
+			StartCoroutine(LoginUser(username, password));
+		} else {
+			loadingParent.SetActive(false);
+			registerParent.SetActive(true);
+			switch (result) {
+				case "UsernameTaken":
+					registerErrorText.text = "Error: Username already taken";
+					break;
+				default:
+					registerErrorText.text = "Error: Unknown Error. Please try again later.";
+					break;
+			}
+		}
 	}
 
 	//Called by Button Pressed Methods. These use DatabaseControl namespace to communicate with server.
-	private IEnumerator LoginUser(string username, string password) {
+	private IEnumerator LoginUser(string userid, string password) {
 		WWWForm form = new WWWForm();
-		form.AddField("username", username);
+		form.AddField("username", userid);
 		form.AddField("password", password);
 
 		WWW www = new WWW(loginPhp, form);
@@ -61,21 +76,19 @@ public class LoginManager : MonoBehaviour {
 
 		string result = www.text;
 
-		Debug.Log(result);
-
 		if (result == "Success") {
 			//Username and Password were correct. Stop showing 'Loading...' and transition to new scenew
-			AccountManager.LogIn(username, password);
+			AccountManager.LogIn(userid);
 		} else {
 			//Something went wrong logging in. Stop showing 'Loading...' and go back to LoginUI
 			loadingParent.gameObject.SetActive(false);
 			loginParent.gameObject.SetActive(true);
 			switch (result) {
-				case "UserError":
+				case "UsernameError":
 					//The Username was wrong so display relevent error message
 					loginErrorText.text = "Error: Username not found";
 					break;
-				case "PassError":
+				case "PasswordError":
 					//The Password was wrong so display relevent error message
 					loginErrorText.text = "Error: Wrong Password";
 					break;
@@ -97,7 +110,7 @@ public class LoginManager : MonoBehaviour {
 				//Username and password seem reasonable. Change UI to 'Loading...'. Start the Coroutine which tries to log the player in.
 				loginParent.gameObject.SetActive(false);
 				loadingParent.gameObject.SetActive(true);
-				StartCoroutine(LoginUser(loginUsernameField.text, loginPasswordField.text));
+				StartCoroutine(LoginUser(loginUsernameField.text.ToLower(), loginPasswordField.text));
 			} else {
 				//Password too short so it must be wrong
 				loginErrorText.text = $"Error: Password too short (must be at least {minPasswordLength} characters)";
@@ -149,16 +162,5 @@ public class LoginManager : MonoBehaviour {
 		ResetAllUIElements();
 		loginParent.gameObject.SetActive(true);
 		registerParent.gameObject.SetActive(false);
-	}
-
-	[UsedImplicitly]
-	public void LoggedIn_LogoutButtonPressed() {
-		//Called when the player hits the 'Logout' button. Switches back to Login UI and forgets the player's username and password.
-		//Note: Database Control doesn't use sessions, so no request to the server is needed here to end a session.
-		AccountManager.LogOut();
-
-		ResetAllUIElements();
-		loginParent.gameObject.SetActive(true);
-		loggedInParent.gameObject.SetActive(false);
 	}
 }
