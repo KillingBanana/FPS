@@ -9,7 +9,7 @@ public class PlayerShoot : NetworkBehaviour {
 	private Player player;
 
 	private WeaponManager weaponManager;
-	private Weapon weapon;
+	private Weapon Weapon => weaponManager.CurrentWeapon;
 
 	private float shootCooldown;
 
@@ -19,19 +19,23 @@ public class PlayerShoot : NetworkBehaviour {
 	}
 
 	private void Update() {
-		weapon = weaponManager.GetCurrentWeapon();
-
 		if (isLocalPlayer && !player.Dead && !PauseMenu.Paused) ProcessInput();
 	}
 
 	private void ProcessInput() {
-		bool shootInput = weapon.auto && Input.GetButton("Fire1") || Input.GetButtonDown("Fire1");
+		bool shootInput = Weapon.auto && Input.GetButton("Fire1") || Input.GetButtonDown("Fire1");
 
 		shootCooldown -= Time.deltaTime;
 
 		if (shootCooldown <= 0 && shootInput) {
-			shootCooldown = 1 / weapon.fireRate;
-			Shoot();
+			shootCooldown = Weapon.ShootCooldown;
+
+			if (Weapon.bullets > 0) {
+				Shoot();
+				Weapon.bullets--;
+			} else {
+				weaponManager.Reload();
+			}
 		}
 	}
 
@@ -44,18 +48,23 @@ public class PlayerShoot : NetworkBehaviour {
 	}
 
 	private void MuzzleFlash() {
-		weaponManager.GetCurrentModel().OnShoot();
+		weaponManager.CurrentModel.OnShoot();
 	}
 
 	[Client]
 	private void Shoot() {
+		if (!isLocalPlayer) {
+			Debug.LogWarning($"Trying to shoot with non-local player {player.username}");
+			return;
+		}
+
 		MuzzleFlash();
 		CmdOnShoot();
 		RaycastHit hit;
-		if (Physics.Raycast(camera.transform.position, camera.transform.forward, out hit, weapon.range, hittableLayers)) {
+		if (Physics.Raycast(camera.transform.position, camera.transform.forward, out hit, Mathf.Infinity, hittableLayers)) {
 			Player hitPlayer = hit.transform.GetComponent<Player>();
 			if (hitPlayer) {
-				player.CmdHit(new HitInfo(player.netId, hitPlayer.netId, weapon.damage, weapon.name));
+				player.CmdHit(new HitInfo(player.netId, hitPlayer.netId, Weapon.damage, Weapon.name));
 			} else {
 				Impact(hit.point, hit.normal);
 				CmdOnHit(hit.point, hit.normal);
@@ -72,7 +81,7 @@ public class PlayerShoot : NetworkBehaviour {
 	}
 
 	private void Impact(Vector3 position, Vector3 normal) {
-		GameObject impact = Instantiate(weaponManager.GetCurrentModel().impactPrefab, position, Quaternion.LookRotation(normal));
+		GameObject impact = Instantiate(weaponManager.CurrentModel.impactPrefab, position, Quaternion.LookRotation(normal));
 		Destroy(impact, 2f);
 	}
 }

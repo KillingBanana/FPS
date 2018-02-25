@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 public class Player : NetworkBehaviour {
 	private const ushort MaxHealth = 100;
 
-	[HideInInspector, SyncVar] public string username = "< Username >";
+	[HideInInspector] public string username = "< Username >";
 
 	[SyncVar] private bool dead;
 	public bool Dead => dead;
@@ -20,8 +20,12 @@ public class Player : NetworkBehaviour {
 	public OnDeath onDeath;
 
 	[Command]
-	public void CmdInitPlayer(string username) {
+	public void CmdInitPlayer(string username) => RpcInitPlayer(username);
+
+	[ClientRpc]
+	public void RpcInitPlayer(string username) {
 		this.username = username;
+		name = username;
 	}
 
 	[Command]

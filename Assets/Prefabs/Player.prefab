@@ -394,11 +394,6 @@ MonoBehaviour:
   - {fileID: 20306618969186752}
   remoteOnlyRenderers:
   - {fileID: 137486944685488092}
-  renderers:
-  - {fileID: 137486944685488092}
-  colliders:
-  - {fileID: 136985312674736098}
-  - {fileID: 135986905962805028}
 --- !u!114 &114168478345064764
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -504,12 +499,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponParent: {fileID: 4080334655317302}
   viewmodelWeaponParent: {fileID: 4642808351974566}
-  primary:
-    name: AK-47
+  weapons:
+  - name: AK-47
     auto: 1
-    damage: 20
+    damage: 25
     fireRate: 10
-    range: 100
+    maxBullets: 30
+    bullets: 0
+    reloadTime: 2
     model: {fileID: 114132061020340772, guid: a788d5567b6014741948f6a4b1848956, type: 2}
 --- !u!114 &114601127855572354
 MonoBehaviour:
