@@ -7,7 +7,9 @@ public class WeaponManager : NetworkBehaviour {
 	[SerializeField] private Transform weaponParent, viewmodelWeaponParent;
 	[SerializeField] private Weapon[] weapons;
 
-	private bool isReloading;
+	public float ReloadProgress { get; private set; }
+
+	public bool IsReloading { get; private set; }
 
 	public Weapon CurrentWeapon { get; private set; }
 
@@ -55,16 +57,22 @@ public class WeaponManager : NetworkBehaviour {
 	}
 
 	public void Reload() {
-		if (!isReloading) StartCoroutine(ReloadCoroutine());
+		if (!IsReloading) StartCoroutine(ReloadCoroutine());
 	}
 
 	private IEnumerator ReloadCoroutine() {
-		isReloading = true;
+		IsReloading = true;
 
-		yield return new WaitForSeconds(CurrentWeapon.reloadTime);
+		float reloadProgress = 0;
+
+		while (reloadProgress < CurrentWeapon.reloadTime) {
+			reloadProgress += Time.deltaTime;
+			ReloadProgress = reloadProgress / CurrentWeapon.reloadTime;
+			yield return null;
+		}
 
 		CurrentWeapon.Reload();
 
-		isReloading = false;
+		IsReloading = false;
 	}
 }

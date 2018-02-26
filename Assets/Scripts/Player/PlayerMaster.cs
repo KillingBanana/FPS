@@ -25,7 +25,7 @@ public class PlayerMaster : NetworkBehaviour {
 
 			lobbyCamera = Camera.main;
 			playerUI = Instantiate(playerUIPrefab);
-			playerUI.controller = GetComponent<PlayerController>();
+			playerUI.Init(GetComponent<PlayerController>(), GetComponent<WeaponManager>());
 
 			if (AccountManager.CurrentAccount != null) player.CmdInitPlayer(AccountManager.CurrentAccount.Username);
 			player.CmdSpawn(transform.position, transform.rotation);
