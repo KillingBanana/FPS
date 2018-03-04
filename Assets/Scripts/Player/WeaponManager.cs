@@ -19,7 +19,7 @@ public class WeaponManager : NetworkBehaviour {
 		Reset();
 	}
 
-	public void Reset() {
+	private void Reset() {
 		foreach (Weapon weapon in weapons) {
 			weapon.Reload();
 		}

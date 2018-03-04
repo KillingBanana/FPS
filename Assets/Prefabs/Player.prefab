@@ -504,9 +504,8 @@ MonoBehaviour:
     auto: 1
     damage: 25
     fireRate: 10
-    maxBullets: 30
-    bullets: 0
     reloadTime: 2
+    maxBullets: 30
     model: {fileID: 114132061020340772, guid: a788d5567b6014741948f6a4b1848956, type: 2}
 --- !u!114 &114601127855572354
 MonoBehaviour:

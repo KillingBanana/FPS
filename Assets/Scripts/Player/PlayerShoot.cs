@@ -30,9 +30,9 @@ public class PlayerShoot : NetworkBehaviour {
 		if (shootCooldown <= 0 && shootInput) {
 			shootCooldown = Weapon.ShootCooldown;
 
-			if (Weapon.bullets > 0) {
+			if (Weapon.Bullets > 0) {
 				Shoot();
-				Weapon.bullets--;
+				Weapon.Shoot();
 			} else {
 				weaponManager.Reload();
 			}
