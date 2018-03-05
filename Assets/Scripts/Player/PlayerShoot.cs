@@ -2,7 +2,7 @@
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(Player)), RequireComponent(typeof(WeaponManager))]
-public class PlayerShoot : NetworkBehaviour {
+public class PlayerShoot : MonoBehaviour {
 	[SerializeField] private new Camera camera;
 	public LayerMask hittableLayers;
 
@@ -19,7 +19,7 @@ public class PlayerShoot : NetworkBehaviour {
 	}
 
 	private void Update() {
-		if (isLocalPlayer && !player.Dead && !PauseMenu.Paused) ProcessInput();
+		if (!player.Dead && !PauseMenu.Paused) ProcessInput();
 	}
 
 	private void ProcessInput() {
@@ -27,61 +27,32 @@ public class PlayerShoot : NetworkBehaviour {
 
 		shootCooldown -= Time.deltaTime;
 
-		if (shootCooldown <= 0 && shootInput) {
+		if (!weaponManager.IsReloading && shootCooldown <= 0 && shootInput) {
 			shootCooldown = Weapon.ShootCooldown;
 
 			if (Weapon.Bullets > 0) {
 				Shoot();
 				Weapon.Shoot();
-			} else {
-				weaponManager.Reload();
 			}
 		}
-	}
 
-	[Command]
-	private void CmdOnShoot() => RpcOnShoot();
+		bool reload = !weaponManager.IsReloading && (Weapon.Bullets == 0 || Input.GetKeyDown(KeyCode.R));
 
-	[ClientRpc]
-	private void RpcOnShoot() {
-		if (!isLocalPlayer) MuzzleFlash();
-	}
-
-	private void MuzzleFlash() {
-		weaponManager.CurrentModel.OnShoot();
-	}
-
-	[Client]
-	private void Shoot() {
-		if (!isLocalPlayer) {
-			Debug.LogWarning($"Trying to shoot with non-local player {player.username}");
-			return;
+		if (reload) {
+			weaponManager.Reload();
 		}
+	}
 
-		MuzzleFlash();
-		CmdOnShoot();
+	private void Shoot() {
+		weaponManager.CmdOnShoot();
 		RaycastHit hit;
 		if (Physics.Raycast(camera.transform.position, camera.transform.forward, out hit, Mathf.Infinity, hittableLayers)) {
 			Player hitPlayer = hit.transform.GetComponent<Player>();
 			if (hitPlayer) {
 				player.CmdHit(new HitInfo(player.netId, hitPlayer.netId, Weapon.damage, Weapon.name));
 			} else {
-				Impact(hit.point, hit.normal);
-				CmdOnHit(hit.point, hit.normal);
+				weaponManager.CmdOnHit(hit.point, hit.normal);
 			}
 		}
-	}
-
-	[Command]
-	private void CmdOnHit(Vector3 position, Vector3 normal) => RpcOnHit(position, normal);
-
-	[ClientRpc]
-	private void RpcOnHit(Vector3 position, Vector3 normal) {
-		if (!isLocalPlayer) Impact(position, normal);
-	}
-
-	private void Impact(Vector3 position, Vector3 normal) {
-		GameObject impact = Instantiate(weaponManager.CurrentModel.impactPrefab, position, Quaternion.LookRotation(normal));
-		Destroy(impact, 2f);
 	}
 }

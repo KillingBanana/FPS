@@ -13,7 +13,7 @@ public class WeaponManager : NetworkBehaviour {
 
 	public Weapon CurrentWeapon { get; private set; }
 
-	public WeaponModel CurrentModel { get; private set; }
+	private WeaponModel CurrentModel { get; set; }
 
 	private void Start() {
 		Reset();
@@ -29,6 +29,37 @@ public class WeaponManager : NetworkBehaviour {
 		} else {
 			Debug.LogError("Error: no weapons set");
 		}
+	}
+
+	[Command]
+	public void CmdOnShoot() {
+		MuzzleFlash();
+		RpcOnShoot();
+	}
+
+	[ClientRpc]
+	private void RpcOnShoot() {
+		if (!isLocalPlayer) MuzzleFlash();
+	}
+
+	private void MuzzleFlash() {
+		CurrentModel.OnShoot();
+	}
+
+	[Command]
+	public void CmdOnHit(Vector3 position, Vector3 normal) {
+		Impact(position, normal);
+		RpcOnHit(position, normal);
+	}
+
+	[ClientRpc]
+	private void RpcOnHit(Vector3 position, Vector3 normal) {
+		if (!isLocalPlayer) Impact(position, normal);
+	}
+
+	private void Impact(Vector3 position, Vector3 normal) {
+		GameObject impact = Instantiate(CurrentModel.impactPrefab, position, Quaternion.LookRotation(normal));
+		Destroy(impact, 2f);
 	}
 
 	private void EquipWeapon(Weapon newWeapon) {
